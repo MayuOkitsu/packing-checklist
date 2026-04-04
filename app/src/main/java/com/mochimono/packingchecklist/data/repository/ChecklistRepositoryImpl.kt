@@ -46,6 +46,7 @@ private fun ChecklistWithProgress.toDomain() = Checklist(
     title = title,
     createdAt = createdAt,
     isSharingEnabled = isSharingEnabled,
+    familyGroupId = familyGroupId,
     checkedCount = checkedCount,
     totalCount = totalCount
 )
@@ -54,5 +55,6 @@ private fun ChecklistEntity.toDomain() = Checklist(
     id = id,
     title = title,
     createdAt = createdAt,
-    isSharingEnabled = isSharingEnabled
+    isSharingEnabled = isSharingEnabled,
+    familyGroupId = familyGroupId
 )

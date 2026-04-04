@@ -3,8 +3,11 @@ package com.mochimono.packingchecklist.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mochimono.packingchecklist.data.remote.NetworkMonitor
 import com.mochimono.packingchecklist.data.repository.ChecklistItemRepository
 import com.mochimono.packingchecklist.data.repository.ChecklistRepository
+import com.mochimono.packingchecklist.data.repository.FamilyGroupRepository
+import com.mochimono.packingchecklist.data.repository.SyncManager
 import com.mochimono.packingchecklist.domain.model.Bag
 import com.mochimono.packingchecklist.domain.model.ChecklistItem
 import com.mochimono.packingchecklist.domain.model.BagSuggestion
@@ -17,6 +20,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,7 +32,8 @@ data class ChecklistDetailState(
     val title: String = "",
     val items: List<ChecklistItem> = emptyList(),
     val isSharingEnabled: Boolean = false,
-    val isGroupedView: Boolean = false
+    val isGroupedView: Boolean = false,
+    val isOnline: Boolean = true
 ) {
     val checkedCount: Int get() = items.count { it.isChecked }
     val totalCount: Int get() = items.size
@@ -49,7 +55,10 @@ class ChecklistDetailViewModel @Inject constructor(
     private val checklistItemRepository: ChecklistItemRepository,
     private val toggleCheckItemUseCase: ToggleCheckItemUseCase,
     private val saveAsCustomTemplateUseCase: SaveAsCustomTemplateUseCase,
-    private val getBagSuggestionsUseCase: GetBagSuggestionsUseCase
+    private val getBagSuggestionsUseCase: GetBagSuggestionsUseCase,
+    private val syncManager: SyncManager,
+    private val familyGroupRepository: FamilyGroupRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val checklistId: String = savedStateHandle["checklistId"] ?: ""
@@ -63,6 +72,7 @@ class ChecklistDetailViewModel @Inject constructor(
     init {
         loadChecklist()
         observeItems()
+        observeNetworkAndSync()
     }
 
     private fun loadChecklist() {
@@ -76,9 +86,23 @@ class ChecklistDetailViewModel @Inject constructor(
                         isSharingEnabled = checklist.isSharingEnabled
                     )
                 )
+                // 共有チェックリストの場合、リアルタイムリスナーを起動
+                if (checklist.isSharingEnabled && checklist.familyGroupId != null) {
+                    startRemoteListener(checklist.familyGroupId)
+                }
             } else {
                 _uiState.value = UiState(error = "チェックリストが見つかりません")
             }
+        }
+    }
+
+    private fun startRemoteListener(groupId: String) {
+        viewModelScope.launch {
+            syncManager.observeRemoteChanges(groupId, checklistId)
+                .catch { /* リスナーエラーは無視、ローカルデータで継続 */ }
+                .collect { remoteItems ->
+                    syncManager.mergeRemoteItems(checklistId, remoteItems)
+                }
         }
     }
 
@@ -92,6 +116,27 @@ class ChecklistDetailViewModel @Inject constructor(
                     )
                 }
         }
+    }
+
+    private fun observeNetworkAndSync() {
+        viewModelScope.launch {
+            networkMonitor.isOnline.collectLatest { online ->
+                _uiState.value = _uiState.value.copy(
+                    data = _uiState.value.data?.copy(isOnline = online)
+                )
+                if (online) {
+                    val groupId = resolveGroupId() ?: return@collectLatest
+                    syncManager.processPendingSyncs(groupId)
+                }
+            }
+        }
+    }
+
+    private suspend fun resolveGroupId(): String? {
+        val checklist = checklistRepository.getChecklistById(checklistId)
+        if (checklist?.isSharingEnabled != true) return null
+        return checklist.familyGroupId
+            ?: familyGroupRepository.getCurrentGroup().firstOrNull()?.id
     }
 
     fun toggleCheck(item: ChecklistItem, bagId: String?) {
@@ -141,7 +186,7 @@ class ChecklistDetailViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = saveAsCustomTemplateUseCase(label, selectedItemNames)) {
                 is Result.Error -> _uiState.value = _uiState.value.copy(error = result.exception.message)
-                is Result.Success -> {} // テンプレート保存成功
+                is Result.Success -> {}
             }
         }
     }

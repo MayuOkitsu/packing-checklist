@@ -5,6 +5,7 @@ data class Checklist(
     val title: String,
     val createdAt: Long,
     val isSharingEnabled: Boolean,
+    val familyGroupId: String? = null,
     val items: List<ChecklistItem> = emptyList(),
     val checkedCount: Int = 0,
     val totalCount: Int = 0
