@@ -12,20 +12,22 @@ class SyncChecklistUseCase @Inject constructor(
     private val familyGroupRepository: FamilyGroupRepository,
     private val syncManager: SyncManager
 ) {
-    suspend operator fun invoke(checklistId: String): Result<Unit> = try {
-        val checklist = checklistRepository.getChecklistById(checklistId)
-            ?: return Result.Error(IllegalArgumentException("チェックリストが見つかりません"))
+    suspend operator fun invoke(checklistId: String): Result<Unit> {
+        return try {
+            val checklist = checklistRepository.getChecklistById(checklistId)
+                ?: return Result.Error(IllegalArgumentException("チェックリストが見つかりません"))
 
-        if (!checklist.isSharingEnabled) {
-            return Result.Success(Unit) // 非共有はローカルのみ、同期不要
+            if (!checklist.isSharingEnabled) {
+                return Result.Success(Unit) // 非共有はローカルのみ、同期不要
+            }
+
+            val group = familyGroupRepository.getCurrentGroup().firstOrNull()
+                ?: return Result.Error(IllegalStateException("Family Groupに参加していません"))
+
+            syncManager.processPendingSyncs(group.id)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
         }
-
-        val group = familyGroupRepository.getCurrentGroup().firstOrNull()
-            ?: return Result.Error(IllegalStateException("Family Groupに参加していません"))
-
-        syncManager.processPendingSyncs(group.id)
-        Result.Success(Unit)
-    } catch (e: Exception) {
-        Result.Error(e)
     }
 }
