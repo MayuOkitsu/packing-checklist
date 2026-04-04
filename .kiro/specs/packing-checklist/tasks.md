@@ -36,7 +36,7 @@ Kotlin + Jetpack Compose によるAndroidアプリ「持ち物チェックリス
     - `PackingChecklistDatabase` を作成し、全Entity・DAOを登録
     - Default_Template の初期データ（パスポート、充電器、着替え、歯ブラシ、常備薬）をプリポピュレート
     - _Requirements: 5.1, 7.1_
-  - [ ] 2.4 Room DAO のユニットテスト
+  - [x] 2.4 Room DAO のユニットテスト
     - In-memory Room Database を使用した DAO 操作テスト
     - CRUD操作、カスケード削除、Flow emission の検証
     - _Requirements: 7.1, 7.2_
@@ -96,7 +96,7 @@ Kotlin + Jetpack Compose によるAndroidアプリ「持ち物チェックリス
     - Default Template 全項目を未チェック・Bag未割り当てで自動追加
     - isSharingEnabled = false で初期作成
     - _Requirements: 1.2, 1.3, 1.4, 10.9_
-  - [ ] 6.2 CreateChecklistUseCase のプロパティテスト
+  - [x] 6.2 CreateChecklistUseCase のプロパティテスト
     - **Property 1: チェックリスト保存のラウンドトリップ**
     - **Validates: Requirements 1.2, 7.1, 7.2**
     - **Property 2: 空文字列バリデーション**
@@ -117,7 +117,7 @@ Kotlin + Jetpack Compose によるAndroidアプリ「持ち物チェックリス
     - 未チェック → チェック済み（Bag選択 or スキップ）
     - チェック済み → 未チェック（Bag割り当て解除）
     - _Requirements: 3.3, 3.4, 3.5, 3.6_
-  - [ ] 6.6 ToggleCheckItemUseCase のプロパティテスト
+  - [x] 6.6 ToggleCheckItemUseCase のプロパティテスト
     - **Property 6: チェック操作の状態遷移**
     - **Validates: Requirements 3.3, 3.4**
     - **Property 7: チェック解除によるBag割り当て解除**
@@ -155,7 +155,7 @@ Kotlin + Jetpack Compose によるAndroidアプリ「持ち物チェックリス
   - [ ]* 6.16 ManageFamilyGroupUseCase のプロパティテスト
     - **Property 20: Family_Group参加・退出**
     - **Validates: Requirements 10.2, 10.5**
-  - [ ] 6.17 コンフリクト解決のプロパティテスト
+  - [x] 6.17 コンフリクト解決のプロパティテスト
     - **Property 21: コンフリクト解決（Last-Write-Wins with serverTimestamp）**
     - **Validates: Requirements 11.5**
 
@@ -305,10 +305,10 @@ Kotlin + Jetpack Compose によるAndroidアプリ「持ち物チェックリス
     - オフライン時のローカル変更保存（PendingSyncEntity）
     - ネットワーク復旧時の未同期変更送信
     - _Requirements: 11.3, 11.4_
-  - [ ] 13.3 オフライン同期のプロパティテスト
+  - [x] 13.3 オフライン同期のプロパティテスト
     - **Property 22: オフライン変更の同期**
     - **Validates: Requirements 11.3, 11.4**
-  - [ ] 13.4 Checklist削除カスケードのプロパティテスト
+  - [x] 13.4 Checklist削除カスケードのプロパティテスト
     - **Property 10: Checklist削除のカスケード**
     - **Validates: Requirements 4.4**
 
