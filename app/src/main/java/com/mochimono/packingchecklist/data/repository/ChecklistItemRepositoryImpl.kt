@@ -50,6 +50,9 @@ class ChecklistItemRepositoryImpl @Inject constructor(
         return checklistItemDao.getById(id)!!.toDomain()
     }
 
+    override suspend fun clearBagAssignments(bagId: String) =
+        checklistItemDao.clearBagAssignment(bagId)
+
     private suspend fun ChecklistItemEntity.toDomain(): ChecklistItem {
         val bag = bagId?.let { bagDao.getById(it) }
         return ChecklistItem(

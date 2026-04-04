@@ -10,4 +10,5 @@ interface ChecklistItemRepository {
     suspend fun updateItemName(id: String, name: String)
     suspend fun toggleCheck(id: String, bagId: String?): ChecklistItem
     suspend fun uncheckItem(id: String): ChecklistItem
+    suspend fun clearBagAssignments(bagId: String)
 }
