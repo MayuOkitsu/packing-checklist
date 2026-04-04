@@ -37,6 +37,10 @@ android {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
@@ -80,6 +84,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.13")
     androidTestImplementation("androidx.room:room-testing:$roomVersion")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
