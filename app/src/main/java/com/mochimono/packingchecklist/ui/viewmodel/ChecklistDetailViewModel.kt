@@ -7,8 +7,10 @@ import com.mochimono.packingchecklist.data.repository.ChecklistItemRepository
 import com.mochimono.packingchecklist.data.repository.ChecklistRepository
 import com.mochimono.packingchecklist.domain.model.Bag
 import com.mochimono.packingchecklist.domain.model.ChecklistItem
+import com.mochimono.packingchecklist.domain.model.BagSuggestion
 import com.mochimono.packingchecklist.domain.model.Result
 import com.mochimono.packingchecklist.domain.model.UiState
+import com.mochimono.packingchecklist.domain.usecase.GetBagSuggestionsUseCase
 import com.mochimono.packingchecklist.domain.usecase.SaveAsCustomTemplateUseCase
 import com.mochimono.packingchecklist.domain.usecase.ToggleCheckItemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,7 +48,8 @@ class ChecklistDetailViewModel @Inject constructor(
     private val checklistRepository: ChecklistRepository,
     private val checklistItemRepository: ChecklistItemRepository,
     private val toggleCheckItemUseCase: ToggleCheckItemUseCase,
-    private val saveAsCustomTemplateUseCase: SaveAsCustomTemplateUseCase
+    private val saveAsCustomTemplateUseCase: SaveAsCustomTemplateUseCase,
+    private val getBagSuggestionsUseCase: GetBagSuggestionsUseCase
 ) : ViewModel() {
 
     private val checklistId: String = savedStateHandle["checklistId"] ?: ""
@@ -151,5 +154,9 @@ class ChecklistDetailViewModel @Inject constructor(
                 data = _uiState.value.data?.copy(isSharingEnabled = !current)
             )
         }
+    }
+
+    suspend fun getBagSuggestions(): List<BagSuggestion> {
+        return getBagSuggestionsUseCase(checklistId, _lastAssignedBagId.value)
     }
 }

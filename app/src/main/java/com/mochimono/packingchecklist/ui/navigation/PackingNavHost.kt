@@ -7,6 +7,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.mochimono.packingchecklist.ui.screen.ChecklistDetailScreen
+import com.mochimono.packingchecklist.ui.screen.ChecklistListScreen
+import com.mochimono.packingchecklist.ui.screen.CreateChecklistScreen
 
 @Composable
 fun PackingNavHost(
@@ -19,7 +22,7 @@ fun PackingNavHost(
         modifier = modifier
     ) {
         composable(Screen.ChecklistList.route) {
-            // TODO: ChecklistListScreen(navController)
+            ChecklistListScreen(navController)
         }
 
         composable(
@@ -27,11 +30,11 @@ fun PackingNavHost(
             arguments = listOf(navArgument("checklistId") { type = NavType.StringType })
         ) { backStackEntry ->
             val checklistId = backStackEntry.arguments?.getString("checklistId") ?: return@composable
-            // TODO: ChecklistDetailScreen(checklistId, navController)
+            ChecklistDetailScreen(checklistId = checklistId, navController = navController)
         }
 
         composable(Screen.CreateChecklist.route) {
-            // TODO: CreateChecklistScreen(navController)
+            CreateChecklistScreen(navController)
         }
 
         composable(Screen.TemplateSelection.route) {
