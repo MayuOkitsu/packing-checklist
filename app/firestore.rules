@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // familyGroupsドキュメント: 認証済みユーザーのみ読み取り・作成可
+    match /familyGroups/{groupId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+
+      // メンバー判定関数
+      function isMember() {
+        return exists(/databases/$(database)/documents/familyGroups/$(groupId)/members/$(request.auth.uid));
+      }
+
+      // membersサブコレクション: グループメンバーのみ読み取り可、自分自身のドキュメントのみ作成/削除可
+      match /members/{userId} {
+        allow read: if isMember();
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // sharedChecklists: グループメンバーのみ読み書き可
+      match /sharedChecklists/{checklistId} {
+        allow read, write: if isMember();
+
+        // items サブコレクション: グループメンバーのみ読み書き可
+        match /items/{itemId} {
+          allow read, write: if isMember();
+        }
+      }
+
+      // sharedBags: グループメンバーのみ読み書き可
+      match /sharedBags/{bagId} {
+        allow read, write: if isMember();
+      }
+
+      // sharedTemplates: グループメンバーのみ読み書き可
+      match /sharedTemplates/{templateId} {
+        allow read, write: if isMember();
+      }
+    }
+  }
+}
