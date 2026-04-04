@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=400, maximum-scale=1.0, user-scalable=no">
+<title>持ち物チェックリスト - Mock</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="phone-frame">
+  <!-- チェックリスト一覧画面 -->
+  <div id="screen-list" class="screen active">
+    <header class="app-bar">
+      <h1>持ち物チェックリスト</h1>
+    </header>
+    <div class="screen-content">
+      <div id="checklist-list" class="list"></div>
+      <div class="empty-state" id="empty-state">
+        <p>📦</p>
+        <p>チェックリストがありません</p>
+        <p class="sub">下のボタンから作成しましょう</p>
+      </div>
+    </div>
+    <div class="bottom-actions">
+      <button class="fab" onclick="showScreen('screen-create')">＋ 新規作成</button>
+      <button class="fab secondary" onclick="showScreen('screen-template-select')">📋 テンプレートから作成</button>
+    </div>
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="showScreen('screen-list')">🏠<span>ホーム</span></button>
+      <button class="nav-item" onclick="showScreen('screen-bag-manage')">👜<span>鞄管理</span></button>
+      <button class="nav-item" onclick="showScreen('screen-template-manage')">📋<span>テンプレート</span></button>
+      <button class="nav-item" onclick="showScreen('screen-family')">👨‍👩‍👧‍👦<span>家族共有</span></button>
+    </nav>
+  </div>
+
+  <!-- チェックリスト作成画面 -->
+  <div id="screen-create" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-list')">←</button>
+      <h1>新規チェックリスト</h1>
+    </header>
+    <div class="screen-content padded">
+      <div class="form-group">
+        <label>タイトル</label>
+        <input type="text" id="new-title" placeholder="例: 沖縄旅行 2026">
+        <p class="error-msg" id="title-error">タイトルを入力してください</p>
+      </div>
+      <button class="btn primary full" onclick="createChecklist()">作成</button>
+    </div>
+  </div>
+
+  <!-- チェックリスト詳細画面 -->
+  <div id="screen-detail" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-list')">←</button>
+      <h1 id="detail-title">チェックリスト</h1>
+      <span class="progress-badge" id="detail-progress">0/0</span>
+      <button class="menu-btn" onclick="toggleDetailMenu()">⋮</button>
+      <div class="dropdown-menu" id="detail-menu">
+        <button onclick="showSaveTemplateDialog()">テンプレートとして保存</button>
+        <button onclick="toggleSharing()">共有設定を切り替え</button>
+      </div>
+    </header>
+    <div class="screen-content">
+      <div class="view-toggle">
+        <button class="toggle-btn active" onclick="setView('flat')">一覧</button>
+        <button class="toggle-btn" onclick="setView('grouped')">鞄別</button>
+      </div>
+      <div id="detail-items" class="list"></div>
+      <div class="add-item-bar">
+        <input type="text" id="new-item-name" placeholder="持ち物を追加...">
+        <button class="add-btn" onclick="addItem()">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bag選択ダイアログ -->
+  <div class="dialog-overlay" id="bag-select-dialog">
+    <div class="dialog">
+      <h2>どの鞄に入れた？</h2>
+      <div id="bag-select-list" class="dialog-list"></div>
+      <button class="btn text full" onclick="selectBag(null)">スキップ（鞄なし）</button>
+    </div>
+  </div>
+
+  <!-- テンプレート保存ダイアログ -->
+  <div class="dialog-overlay" id="save-template-dialog">
+    <div class="dialog">
+      <h2>テンプレートとして保存</h2>
+      <div class="form-group">
+        <label>ラベル（目的地・用途）</label>
+        <input type="text" id="template-label" placeholder="例: USJ">
+      </div>
+      <p class="dialog-sub">保存する項目を選択:</p>
+      <div id="template-item-select" class="dialog-list"></div>
+      <div class="dialog-actions">
+        <button class="btn text" onclick="closeSaveTemplateDialog()">キャンセル</button>
+        <button class="btn primary" onclick="saveAsTemplate()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- テンプレート選択画面 -->
+  <div id="screen-template-select" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-list')">←</button>
+      <h1>テンプレートから作成</h1>
+    </header>
+    <div class="screen-content padded">
+      <p class="section-note">使いたいテンプレートを選択してください（複数可）</p>
+      <div id="template-select-list" class="list"></div>
+      <div class="form-group">
+        <label>チェックリストのタイトル</label>
+        <input type="text" id="template-create-title" placeholder="例: USJ旅行 2026">
+      </div>
+      <button class="btn primary full" onclick="createFromTemplate()">作成</button>
+    </div>
+  </div>
+
+  <!-- テンプレート管理画面 -->
+  <div id="screen-template-manage" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-list')">←</button>
+      <h1>テンプレート管理</h1>
+    </header>
+    <div class="screen-content">
+      <div class="section-header">デフォルトテンプレート</div>
+      <div id="default-template-items" class="list"></div>
+      <div class="add-item-bar">
+        <input type="text" id="new-default-item" placeholder="デフォルト項目を追加...">
+        <button class="add-btn" onclick="addDefaultItem()">追加</button>
+      </div>
+      <div class="section-header">カスタムテンプレート</div>
+      <div id="custom-template-list" class="list"></div>
+    </div>
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="showScreen('screen-list')">🏠<span>ホーム</span></button>
+      <button class="nav-item" onclick="showScreen('screen-bag-manage')">👜<span>鞄管理</span></button>
+      <button class="nav-item active" onclick="showScreen('screen-template-manage')">📋<span>テンプレート</span></button>
+      <button class="nav-item" onclick="showScreen('screen-family')">👨‍👩‍👧‍👦<span>家族共有</span></button>
+    </nav>
+  </div>
+
+  <!-- カスタムテンプレート編集画面 -->
+  <div id="screen-custom-template-edit" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-template-manage')">←</button>
+      <h1 id="custom-template-edit-title">テンプレート編集</h1>
+    </header>
+    <div class="screen-content">
+      <div id="custom-template-edit-items" class="list"></div>
+      <div class="add-item-bar">
+        <input type="text" id="new-custom-template-item" placeholder="項目を追加...">
+        <button class="add-btn" onclick="addCustomTemplateItem()">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 鞄管理画面 -->
+  <div id="screen-bag-manage" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-list')">←</button>
+      <h1>鞄管理</h1>
+    </header>
+    <div class="screen-content">
+      <div id="bag-list" class="list"></div>
+      <div class="add-item-bar">
+        <input type="text" id="new-bag-name" placeholder="鞄の名前を入力...">
+        <button class="add-btn" onclick="addBag()">登録</button>
+      </div>
+      <p class="error-msg" id="bag-error" style="display:none;padding:0 16px">鞄の名前を入力してください</p>
+    </div>
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="showScreen('screen-list')">🏠<span>ホーム</span></button>
+      <button class="nav-item active" onclick="showScreen('screen-bag-manage')">👜<span>鞄管理</span></button>
+      <button class="nav-item" onclick="showScreen('screen-template-manage')">📋<span>テンプレート</span></button>
+      <button class="nav-item" onclick="showScreen('screen-family')">👨‍👩‍👧‍👦<span>家族共有</span></button>
+    </nav>
+  </div>
+
+  <!-- 家族共有画面 -->
+  <div id="screen-family" class="screen">
+    <header class="app-bar">
+      <button class="back-btn" onclick="showScreen('screen-list')">←</button>
+      <h1>家族共有</h1>
+    </header>
+    <div class="screen-content padded">
+      <div id="family-no-group">
+        <div class="card">
+          <h3>グループを作成</h3>
+          <p class="sub">招待コードを生成して家族に共有しましょう</p>
+          <button class="btn primary full" onclick="createFamilyGroup()">グループを作成</button>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>グループに参加</h3>
+          <p class="sub">家族から受け取った招待コードを入力</p>
+          <input type="text" id="invite-code-input" placeholder="招待コードを入力">
+          <button class="btn primary full" style="margin-top:8px" onclick="joinFamilyGroup()">参加</button>
+        </div>
+      </div>
+      <div id="family-has-group" style="display:none">
+        <div class="card">
+          <h3>家族グループ</h3>
+          <p class="sub">招待コード:</p>
+          <div class="invite-code" id="invite-code-display" onclick="copyInviteCode()" style="cursor:pointer" title="タップでコピー"></div>
+          <p class="sub" style="margin-top:8px" id="invite-code-hint">タップでコピー</p>
+          <button class="btn danger full" style="margin-top:16px" onclick="leaveFamilyGroup()">グループから退出</button>
+        </div>
+      </div>
+    </div>
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="showScreen('screen-list')">🏠<span>ホーム</span></button>
+      <button class="nav-item" onclick="showScreen('screen-bag-manage')">👜<span>鞄管理</span></button>
+      <button class="nav-item" onclick="showScreen('screen-template-manage')">📋<span>テンプレート</span></button>
+      <button class="nav-item active" onclick="showScreen('screen-family')">👨‍👩‍👧‍👦<span>家族共有</span></button>
+    </nav>
+  </div>
+
+  <!-- 削除確認ダイアログ -->
+  <div class="dialog-overlay" id="delete-dialog">
+    <div class="dialog">
+      <h2>削除しますか？</h2>
+      <p id="delete-msg"></p>
+      <div class="dialog-actions">
+        <button class="btn text" onclick="closeDeleteDialog()">キャンセル</button>
+        <button class="btn danger" id="delete-confirm-btn">削除</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
