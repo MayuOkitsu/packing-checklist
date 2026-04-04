@@ -37,4 +37,28 @@ interface ChecklistItemDao {
 
     @Query("UPDATE checklist_items SET name = :name, lastModifiedAt = :lastModifiedAt WHERE id = :id")
     suspend fun updateName(id: String, name: String, lastModifiedAt: Long)
+
+    @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM checklist_items WHERE checklistId = :checklistId")
+    suspend fun getMaxSortOrder(checklistId: String): Int
+
+    @Query("""
+        SELECT ci.*, b.id AS bag_id, b.name AS bag_name 
+        FROM checklist_items ci 
+        LEFT JOIN bags b ON ci.bagId = b.id 
+        WHERE ci.checklistId = :checklistId 
+        ORDER BY ci.sortOrder ASC
+    """)
+    fun getByChecklistIdWithBag(checklistId: String): Flow<List<ChecklistItemWithBag>>
 }
+
+data class ChecklistItemWithBag(
+    val id: String,
+    val checklistId: String,
+    val name: String,
+    val isChecked: Boolean,
+    val bagId: String?,
+    val lastModifiedAt: Long,
+    val sortOrder: Int,
+    @androidx.room.ColumnInfo(name = "bag_id") val bagJoinId: String?,
+    @androidx.room.ColumnInfo(name = "bag_name") val bagJoinName: String?
+)

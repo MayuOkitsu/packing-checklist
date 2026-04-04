@@ -25,9 +25,9 @@ class GetBagSuggestionsUseCase @Inject constructor(
         val otherBags = sorted.filter { (bagCounts[it.id] ?: 0) == 0 }
 
         return buildList {
-            lastBag?.let { add(BagSuggestion(it, priority = 0)) }
-            countBags.forEach { add(BagSuggestion(it, priority = 1)) }
-            otherBags.forEach { add(BagSuggestion(it, priority = 2)) }
+            lastBag?.let { add(BagSuggestion(it, priority = 0, assignedCount = bagCounts[it.id] ?: 0)) }
+            countBags.forEach { add(BagSuggestion(it, priority = 1, assignedCount = bagCounts[it.id] ?: 0)) }
+            otherBags.forEach { add(BagSuggestion(it, priority = 2, assignedCount = 0)) }
         }
     }
 }

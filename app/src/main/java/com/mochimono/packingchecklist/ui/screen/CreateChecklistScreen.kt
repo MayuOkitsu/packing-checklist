@@ -2,6 +2,8 @@ package com.mochimono.packingchecklist.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -35,8 +37,8 @@ fun CreateChecklistScreen(
             TopAppBar(
                 title = { Text("新規チェックリスト", fontSize = 18.sp) },
                 navigationIcon = {
-                    TextButton(onClick = { navController.popBackStack() }) {
-                        Text("←", color = Color.White, fontSize = 20.sp)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "戻る", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

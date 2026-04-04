@@ -163,12 +163,29 @@ fun FamilyGroupScreen(
                         Spacer(Modifier.height(16.dp))
 
                         // 退出ボタン
+                        var showLeaveDialog by remember { mutableStateOf(false) }
                         Button(
-                            onClick = { viewModel.leaveGroup() },
+                            onClick = { showLeaveDialog = true },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
                         ) { Text("グループから退出", fontWeight = FontWeight.SemiBold) }
+
+                        if (showLeaveDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showLeaveDialog = false },
+                                title = { Text("グループから退出しますか？") },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = { viewModel.leaveGroup(); showLeaveDialog = false },
+                                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF4444))
+                                    ) { Text("退出") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showLeaveDialog = false }) { Text("キャンセル") }
+                                }
+                            )
+                        }
                     }
                 }
             }

@@ -50,10 +50,10 @@ class SyncManager @Inject constructor(
     }
 
     private suspend fun processItemSync(groupId: String, entry: PendingSyncEntity) {
-        // payloadはJSON: checklistId,name,isChecked,bagId等を含む想定
-        // 簡易的にentityIdからchecklistIdを分離せず、payloadにchecklistIdを含める設計
-        val parts = entry.payload.split("|")
-        val checklistId = parts.getOrNull(0) ?: return
+        val payload = try {
+            org.json.JSONObject(entry.payload)
+        } catch (_: Exception) { return }
+        val checklistId = payload.optString("checklistId").ifEmpty { return }
         when (entry.operation) {
             "delete" -> firestoreDataSource.deleteItem(groupId, checklistId, entry.entityId)
             else -> {

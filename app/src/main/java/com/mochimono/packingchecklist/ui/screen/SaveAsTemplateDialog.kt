@@ -22,6 +22,7 @@ fun SaveAsTemplateDialog(
     onDismiss: () -> Unit
 ) {
     var label by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val selectedIds = remember { mutableStateMapOf<String, Boolean>().apply { items.forEach { put(it.id, true) } } }
 
     ModalBottomSheet(
@@ -64,6 +65,9 @@ fun SaveAsTemplateDialog(
                 }
             }
             Spacer(Modifier.height(16.dp))
+            errorMessage?.let {
+                Text(it, color = Color(0xFFEF4444), fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -75,7 +79,11 @@ fun SaveAsTemplateDialog(
                 Button(
                     onClick = {
                         val selected = items.filter { selectedIds[it.id] == true }.map { it.name }
-                        if (label.isNotBlank() && selected.isNotEmpty()) onSave(label.trim(), selected)
+                        when {
+                            label.isBlank() -> errorMessage = "ラベルを入力してください"
+                            selected.isEmpty() -> errorMessage = "項目を1つ以上選択してください"
+                            else -> onSave(label.trim(), selected)
+                        }
                     },
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4))

@@ -44,5 +44,6 @@ data class TemplateItem(
 
 data class BagSuggestion(
     val bag: Bag,
-    val priority: Int // 0: 直前割り当て, 1: 割り当て数順, 2: その他
+    val priority: Int, // 0: 直前割り当て, 1: 割り当て数順, 2: その他
+    val assignedCount: Int = 0
 )

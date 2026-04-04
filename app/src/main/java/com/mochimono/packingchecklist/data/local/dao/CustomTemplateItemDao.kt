@@ -13,6 +13,9 @@ interface CustomTemplateItemDao {
     @Query("SELECT * FROM custom_template_items WHERE templateId = :templateId ORDER BY sortOrder ASC")
     fun getByTemplateId(templateId: String): Flow<List<CustomTemplateItemEntity>>
 
+    @Query("SELECT * FROM custom_template_items WHERE templateId = :templateId ORDER BY sortOrder ASC")
+    suspend fun getByTemplateIdList(templateId: String): List<CustomTemplateItemEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<CustomTemplateItemEntity>)
 

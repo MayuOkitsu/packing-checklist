@@ -1,9 +1,16 @@
 package com.mochimono.packingchecklist.ui.screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,17 +45,27 @@ fun ChecklistDetailScreen(
     var pendingCheckItem by remember { mutableStateOf<ChecklistItem?>(null) }
     var bagSuggestions by remember { mutableStateOf<List<BagSuggestion>>(emptyList()) }
     var newItemText by remember { mutableStateOf("") }
+    var editingItem by remember { mutableStateOf<ChecklistItem?>(null) }
+    var editingItemName by remember { mutableStateOf("") }
+    var showTitleEditDialog by remember { mutableStateOf(false) }
+    var editingTitle by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(state.title, fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        state.title, fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.combinedClickable(
+                            onClick = {},
+                            onLongClick = { editingTitle = state.title; showTitleEditDialog = true }
+                        )
+                    )
                 },
                 navigationIcon = {
-                    TextButton(onClick = { navController.popBackStack() }) {
-                        Text("←", color = Color.White, fontSize = 20.sp)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "戻る", tint = Color.White)
                     }
                 },
                 actions = {
@@ -64,8 +81,8 @@ fun ChecklistDetailScreen(
                         )
                     }
                     Box {
-                        TextButton(onClick = { menuExpanded = true }) {
-                            Text("⋮", color = Color.White, fontSize = 20.sp)
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "メニュー", tint = Color.White)
                         }
                         DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                             DropdownMenuItem(
@@ -134,12 +151,14 @@ fun ChecklistDetailScreen(
                             BagGroupHeader(bagName = group.bag?.name, count = group.items.size)
                         }
                         items(group.items, key = { it.id }) { item ->
-                            CheckItem(item, onToggle = { onToggle(item) }, onDelete = { viewModel.deleteItem(item.id) })
+                            CheckItem(item, onToggle = { onToggle(item) }, onDelete = { viewModel.deleteItem(item.id) },
+                                onEditName = { editingItem = item; editingItemName = item.name })
                         }
                     }
                 } else {
                     items(state.items, key = { it.id }) { item ->
-                        CheckItem(item, onToggle = { onToggle(item) }, onDelete = { viewModel.deleteItem(item.id) })
+                        CheckItem(item, onToggle = { onToggle(item) }, onDelete = { viewModel.deleteItem(item.id) },
+                            onEditName = { editingItem = item; editingItemName = item.name })
                     }
                 }
             }
@@ -192,6 +211,60 @@ fun ChecklistDetailScreen(
             onDismiss = { showTemplateDialog = false }
         )
     }
+
+    // タイトル編集ダイアログ（要件4.1: 長押し）
+    if (showTitleEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showTitleEditDialog = false },
+            title = { Text("タイトルを編集") },
+            text = {
+                OutlinedTextField(
+                    value = editingTitle,
+                    onValueChange = { editingTitle = it },
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (editingTitle.isNotBlank()) {
+                        viewModel.updateTitle(editingTitle.trim())
+                        showTitleEditDialog = false
+                    }
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTitleEditDialog = false }) { Text("キャンセル") }
+            }
+        )
+    }
+
+    // 項目名編集ダイアログ（要件4.5: タップ）
+    editingItem?.let { item ->
+        AlertDialog(
+            onDismissRequest = { editingItem = null },
+            title = { Text("項目名を編集") },
+            text = {
+                OutlinedTextField(
+                    value = editingItemName,
+                    onValueChange = { editingItemName = it },
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (editingItemName.isNotBlank()) {
+                        viewModel.updateItemName(item.id, editingItemName.trim())
+                        editingItem = null
+                    }
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingItem = null }) { Text("キャンセル") }
+            }
+        )
+    }
 }
 
 @Composable
@@ -209,7 +282,8 @@ private fun BagGroupHeader(bagName: String?, count: Int) {
 private fun CheckItem(
     item: ChecklistItem,
     onToggle: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEditName: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
@@ -223,7 +297,7 @@ private fun CheckItem(
             Checkbox(
                 checked = item.isChecked,
                 onCheckedChange = { onToggle() },
-                colors = CheckboxDefaults.colors(checkedColor = Color(0xFF6750A4)),
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary),
                 modifier = Modifier.size(22.dp)
             )
             Spacer(Modifier.width(10.dp))
@@ -232,24 +306,22 @@ private fun CheckItem(
                 fontSize = 14.sp,
                 color = if (item.isChecked) Color(0xFF999999) else Color(0xFF333333),
                 textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).clickable { onEditName() }
             )
             item.bag?.let { bag ->
                 Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFFF5F0FF)) {
                     Text(
                         "👜 ${bag.name}",
                         fontSize = 11.sp,
-                        color = Color(0xFF6750A4),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
                 Spacer(Modifier.width(4.dp))
             }
-            TextButton(
-                onClick = onDelete,
-                contentPadding = PaddingValues(4.dp),
-                modifier = Modifier.size(28.dp)
-            ) { Text("✕", fontSize = 16.sp, color = Color(0xFFCCCCCC)) }
+            IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                Icon(Icons.Default.Close, contentDescription = "${item.name}を削除", tint = Color(0xFFCCCCCC), modifier = Modifier.size(16.dp))
+            }
         }
     }
 }

@@ -52,8 +52,9 @@ fun BagSelectionDialog(
                                 fontSize = 14.sp,
                                 modifier = Modifier.weight(1f)
                             )
-                            // N個入り表示（priority 0 or 1 = カウントあり）
-                            // BagSuggestionにはcountがないので、priorityで判断
+                            if (suggestion.assignedCount > 0) {
+                                Text("${suggestion.assignedCount}個入り", fontSize = 12.sp, color = Color(0xFF999999))
+                            }
                         }
                     }
                 }

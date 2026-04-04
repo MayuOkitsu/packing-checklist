@@ -31,6 +31,7 @@ fun TemplateSelectionScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val state = uiState.data
     var title by remember { mutableStateOf("") }
+    var titleError by remember { mutableStateOf(false) }
 
     // 作成成功時にリスト画面へ遷移
     LaunchedEffect(state?.createdChecklistId) {
@@ -112,15 +113,24 @@ fun TemplateSelectionScreen(
                     Spacer(Modifier.height(4.dp))
                     OutlinedTextField(
                         value = title,
-                        onValueChange = { title = it },
+                        onValueChange = { title = it; titleError = false },
                         placeholder = { Text("例: USJ旅行 2026") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        isError = titleError,
+                        supportingText = if (titleError) {{ Text("タイトルを入力してください", color = Color(0xFFEF4444), fontSize = 12.sp) }} else null
                     )
                     Spacer(Modifier.height(16.dp))
                     Button(
-                        onClick = { viewModel.createFromSelectedTemplates(title) },
+                        onClick = {
+                            if (title.isBlank()) {
+                                titleError = true
+                            } else {
+                                titleError = false
+                                viewModel.createFromSelectedTemplates(title)
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     ) {

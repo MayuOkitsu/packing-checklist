@@ -9,7 +9,6 @@ import com.mochimono.packingchecklist.data.local.entity.DefaultTemplateItemEntit
 import com.mochimono.packingchecklist.domain.model.CustomTemplate
 import com.mochimono.packingchecklist.domain.model.TemplateItem
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
@@ -28,7 +27,7 @@ class TemplateRepositoryImpl @Inject constructor(
     override fun getCustomTemplates(): Flow<List<CustomTemplate>> =
         customTemplateDao.getAll().map { templates ->
             templates.map { t ->
-                val items = customTemplateItemDao.getByTemplateId(t.id).first()
+                val items = customTemplateItemDao.getByTemplateIdList(t.id)
                 CustomTemplate(id = t.id, label = t.label, items = items.map { it.name })
             }
         }
