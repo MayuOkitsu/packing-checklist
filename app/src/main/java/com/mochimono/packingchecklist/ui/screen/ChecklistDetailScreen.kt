@@ -29,7 +29,7 @@ import com.mochimono.packingchecklist.domain.model.ChecklistItem
 import com.mochimono.packingchecklist.ui.viewmodel.ChecklistDetailViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ChecklistDetailScreen(
     checklistId: String,
