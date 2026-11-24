@@ -1,4 +1,4 @@
-# 持ち物チェックリスト (Packing Checklist)
+# 持ち物チェックリスト (Packing Checklist)　変更後のActionsテスト
 
 旅行や外出時の持ち物をリスト化し、チェック操作・鞄割り当て・テンプレート管理・家族間共有ができるAndroidアプリ。
 
